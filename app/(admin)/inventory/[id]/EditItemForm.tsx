@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateItemAction } from "./actions";
 import { toast } from "@/app/components/Toast";
@@ -14,7 +14,6 @@ export default function EditItemForm({ item }: { item: InventoryItem }) {
   const [imageBlobUrl, setImageBlobUrl] = useState(item.image_blob_url || "");
   const [active, setActive] = useState(item.active);
   const [rotating, setRotating] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -37,54 +36,11 @@ export default function EditItemForm({ item }: { item: InventoryItem }) {
   async function handleRotate(action: "cw" | "ccw" | "flip-h" | "flip-v") {
     setRotating(true);
     try {
-      // Use the proxy route to fetch image (avoids CORS)
-      const proxyUrl = `/api/images?url=${encodeURIComponent(imageUrl)}`;
-      const fetchRes = await fetch(proxyUrl);
-      if (!fetchRes.ok) throw new Error("Failed to fetch image");
-      const imgBlob = await fetchRes.blob();
-      const objectUrl = URL.createObjectURL(imgBlob);
-
-      const img = new Image();
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error("Failed to load image"));
-        img.src = objectUrl;
+      const res = await fetch("/api/images/rotate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl, action }),
       });
-      URL.revokeObjectURL(objectUrl);
-
-      const canvas = canvasRef.current;
-      if (!canvas) throw new Error("Canvas not available");
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Canvas context not available");
-
-      const isRotation = action === "cw" || action === "ccw";
-      canvas.width = isRotation ? img.height : img.width;
-      canvas.height = isRotation ? img.width : img.height;
-
-      ctx.save();
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-
-      if (action === "cw") ctx.rotate(Math.PI / 2);
-      else if (action === "ccw") ctx.rotate(-Math.PI / 2);
-      else if (action === "flip-h") ctx.scale(-1, 1);
-      else if (action === "flip-v") ctx.scale(1, -1);
-
-      ctx.drawImage(img, -img.width / 2, -img.height / 2);
-      ctx.restore();
-
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob(
-          (b) => (b ? resolve(b) : reject(new Error("Canvas to blob failed"))),
-          "image/jpeg",
-          0.9
-        );
-      });
-
-      const file = new File([blob], "rotated.jpg", { type: "image/jpeg" });
-      const formData = new FormData();
-      formData.append("image", file);
-
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
@@ -120,9 +76,6 @@ export default function EditItemForm({ item }: { item: InventoryItem }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Hidden canvas for image transforms */}
-      <canvas ref={canvasRef} className="hidden" />
-
       {/* Image */}
       <div className="bg-white rounded-[var(--radius-lg)] shadow-card p-6">
         <label className="block text-sm font-medium text-text-secondary mb-3">
