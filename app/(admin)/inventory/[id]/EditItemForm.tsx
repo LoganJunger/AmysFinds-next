@@ -37,15 +37,18 @@ export default function EditItemForm({ item }: { item: InventoryItem }) {
   async function handleRotate(action: "cw" | "ccw" | "flip-h" | "flip-v") {
     setRotating(true);
     try {
-      // Load image onto canvas
-      const img = new Image();
-      img.crossOrigin = "anonymous";
+      // Fetch image as blob to avoid CORS issues with canvas
+      const fetchRes = await fetch(toImageUrl(imageUrl));
+      const imgBlob = await fetchRes.blob();
+      const objectUrl = URL.createObjectURL(imgBlob);
 
+      const img = new Image();
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve();
         img.onerror = () => reject(new Error("Failed to load image"));
-        img.src = toImageUrl(imageUrl);
+        img.src = objectUrl;
       });
+      URL.revokeObjectURL(objectUrl);
 
       const canvas = canvasRef.current;
       if (!canvas) throw new Error("Canvas not available");
