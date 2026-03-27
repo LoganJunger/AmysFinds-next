@@ -37,8 +37,10 @@ export default function EditItemForm({ item }: { item: InventoryItem }) {
   async function handleRotate(action: "cw" | "ccw" | "flip-h" | "flip-v") {
     setRotating(true);
     try {
-      // Fetch image as blob to avoid CORS issues with canvas
-      const fetchRes = await fetch(toImageUrl(imageUrl));
+      // Use the proxy route to fetch image (avoids CORS)
+      const proxyUrl = `/api/images?url=${encodeURIComponent(imageUrl)}`;
+      const fetchRes = await fetch(proxyUrl);
+      if (!fetchRes.ok) throw new Error("Failed to fetch image");
       const imgBlob = await fetchRes.blob();
       const objectUrl = URL.createObjectURL(imgBlob);
 
@@ -70,7 +72,6 @@ export default function EditItemForm({ item }: { item: InventoryItem }) {
       ctx.drawImage(img, -img.width / 2, -img.height / 2);
       ctx.restore();
 
-      // Convert canvas to blob and upload
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob(
           (b) => (b ? resolve(b) : reject(new Error("Canvas to blob failed"))),

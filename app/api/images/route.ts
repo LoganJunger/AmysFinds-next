@@ -6,12 +6,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing url" }, { status: 400 });
   }
 
+  // Only allow proxying blob storage URLs
+  if (!url.includes("blob.vercel-storage.com")) {
+    return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
+  }
+
   try {
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
-      },
-    });
+    const response = await fetch(url);
 
     if (!response.ok) {
       return new NextResponse("Image not found", { status: 404 });
@@ -24,6 +25,7 @@ export async function GET(req: NextRequest) {
       headers: {
         "Content-Type": contentType,
         "Cache-Control": "public, max-age=31536000, immutable",
+        "Access-Control-Allow-Origin": "*",
       },
     });
   } catch {
