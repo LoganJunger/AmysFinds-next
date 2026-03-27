@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { listAllItems } from "@/lib/db/queries/items";
+import { imageUrl } from "@/lib/blob/url";
 import { formatDate } from "@/lib/utils";
 import InventoryActions from "./InventoryActions";
 
@@ -98,15 +99,11 @@ export default async function InventoryPage({
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-[var(--radius-md)] overflow-hidden bg-surface-tertiary flex-shrink-0">
-                          {item.image_url && !item.image_url.startsWith("data:") ? (
-                            <img
-                              src={item.image_url}
-                              alt={item.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-surface-tertiary" />
-                          )}
+                          <img
+                            src={imageUrl(item.image_url)}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                         <span className="font-medium text-text-primary truncate max-w-[200px]">
                           {item.title}

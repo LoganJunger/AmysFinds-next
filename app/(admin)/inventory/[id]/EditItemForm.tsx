@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateItemAction } from "./actions";
 import { toast } from "@/app/components/Toast";
+import { imageUrl as toImageUrl } from "@/lib/blob/url";
 import type { InventoryItem } from "@/lib/db/queries/items";
 
 export default function EditItemForm({ item }: { item: InventoryItem }) {
@@ -60,13 +61,7 @@ export default function EditItemForm({ item }: { item: InventoryItem }) {
         </label>
         <div className="flex items-start gap-6">
           <div className="w-40 h-40 rounded-[var(--radius-lg)] overflow-hidden bg-surface-tertiary flex-shrink-0">
-            {imageUrl && !imageUrl.startsWith("data:") ? (
-              <img src={imageUrl} alt={item.title} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-text-tertiary text-sm">
-                No image
-              </div>
-            )}
+            <img src={toImageUrl(imageUrl)} alt={item.title} className="w-full h-full object-cover" />
           </div>
           <div>
             <label className="inline-flex items-center gap-2 px-4 py-2 bg-surface-secondary text-text-primary text-sm font-medium rounded-[var(--radius-md)] border border-border cursor-pointer hover:bg-surface-tertiary transition-colors">
