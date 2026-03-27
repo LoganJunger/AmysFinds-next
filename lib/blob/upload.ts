@@ -29,11 +29,10 @@ export async function uploadImage(
   const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
   const filename = `items/${timestamp}-${safeName}`;
 
-  // Private stores don't accept access: "public" at runtime,
-  // but the SDK types require it. Use type assertion to bypass.
   const blob = await put(filename, file, {
+    access: "public",
     addRandomSuffix: true,
-  } as Parameters<typeof put>[2]);
+  });
 
   return { url: blob.url, pathname: blob.pathname };
 }
