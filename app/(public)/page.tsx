@@ -3,6 +3,8 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { getFeaturedItems } from "@/lib/db/queries/items";
 import ItemCard from "@/app/components/ItemCard";
+import HomeUploader from "./HomeUploader";
+import ToastContainer from "@/app/components/Toast";
 
 export default async function HomePage() {
   const featuredItems = await getFeaturedItems(6);
@@ -52,6 +54,10 @@ export default async function HomePage() {
           </svg>
         </div>
       </section>
+
+      {/* Upload + AI Analysis */}
+      <HomeUploader />
+      <ToastContainer />
 
       {/* How It Works */}
       <section className="py-20 px-4 bg-white">
